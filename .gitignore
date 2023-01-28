@@ -5,9 +5,6 @@
 # Binaries
 *-Debug/
 
-# Vendor modules
-*/vendor/*
-
 # ----------------------------------------------------------------------------
 # Below was generated, then appended by QTCreator
 # This file is used to ignore files which are generated
