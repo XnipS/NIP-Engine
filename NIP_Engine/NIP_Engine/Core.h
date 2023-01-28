@@ -13,3 +13,5 @@
 #else
 #  define NIP_ENGINE_API Q_DECL_IMPORT
 #endif
+
+#define BIT(x) (1 << x)
