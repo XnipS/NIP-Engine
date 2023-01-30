@@ -1,6 +1,6 @@
 # Inlcude spdlog (is not a shared library)
 INCLUDE_DIRECTORIES(
-	. # inlcude parent dir
+        . # inlcude parent dir
     vendor/spdlog/include # include spdlog
 	# TODO include glfw
 )
@@ -14,17 +14,21 @@ add_library(NIP_Engine SHARED
     NIP_Engine/Events/Event.h
     NIP_Engine/Events/ApplicationEvent.h
     NIP_Engine/Events/MouseEvent.h
-	NIP_Engine/Events/KeyEvent.h
+    NIP_Engine/Events/KeyEvent.h
+    NIP_Engine/Window.h  NIP_Engine/Window.cpp
+    TestWindow.cpp TestWindow.h
     Test.cpp Test.h
 )
+
+target_link_libraries(NIP_Engine glfw)
 
 # Mark NIP_PCH library as precompile
 #option(NE_USING_PCH "Build NIP-Engine using PCH" ON)
 #if(NE_USING_PCH)
-	message(STATUS "Adding PCHs")
+        message(STATUS "Adding PCHs")
 	target_precompile_headers(NIP_Engine
-    	PRIVATE NIP_PCH.h
-	)
+	PRIVATE NIP_PCH.h
+        )
 #else()
 #	message(STATUS "PCHs ignored")
 #endif()

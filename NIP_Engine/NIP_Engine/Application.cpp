@@ -1,26 +1,20 @@
 #include "Application.h"
 
-#include "Events/ApplicationEvent.h"
-#include "Log.h"
+#include <memory>
+
+#include "NIP_Engine/Window.h"
 
 namespace NIP_Engine {
 
-Application::Application() {}
+Application::Application() {
+  m_Window = std::unique_ptr<Window>(Window::Create());
+}
 
 Application::~Application() {}
 
 void Application::Run() {
-  NE_TRACE("BAlls");
-  WindowResizeEvent e(1280, 720);
-
-  if (e.IsInCategory(EventCategoryApplication)) {
-    NE_TRACE(e.ToString());
-  }
-  if (e.IsInCategory(EventCategoryInput)) {
-    NE_ERROR(e.ToString());
-  }
-  while (true) {
-    // printf("NIP_Engine ONLINE");
+  while (m_Running) {
+    m_Window->OnUpdate();
   }
 }
 }  // namespace NIP_Engine
