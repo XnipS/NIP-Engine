@@ -2,8 +2,12 @@
 # Below was written by XnipS
 # ----------------------------------------------------------------------------
 
-# Binaries
-*-Debug/
+# Vscode files
+*.vscode/
+# Gcc build files
+build/
+# Clangd cache
+.cache
 
 # ----------------------------------------------------------------------------
 # Below was generated, then appended by QTCreator
