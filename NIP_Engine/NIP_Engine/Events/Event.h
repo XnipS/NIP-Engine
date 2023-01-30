@@ -1,5 +1,4 @@
 #pragma once
-#include "../../NIP_PCH.h"
 #include "../Core.h"
 
 namespace NIP_Engine {

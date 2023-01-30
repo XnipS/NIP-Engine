@@ -1,5 +1,6 @@
 #pragma once
-#include "../vendor/spdlog/include/spdlog/spdlog.h"
+#include <spdlog/spdlog.h>
+
 #include "Core.h"
 
 namespace NIP_Engine {
