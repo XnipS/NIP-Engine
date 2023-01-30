@@ -8,6 +8,9 @@
 build/
 # Clangd cache
 .cache
+*CMakeCache.txt
+*CMakeFiles/
+*.cmake
 
 # ----------------------------------------------------------------------------
 # Below was generated, then appended by QTCreator
