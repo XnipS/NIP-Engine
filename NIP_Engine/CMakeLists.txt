@@ -28,6 +28,3 @@ target_precompile_headers(NIP_PCH
 target_compile_definitions(NIP_Engine
     PRIVATE NIP_ENGINE_LIBRARY
 )
-
-# TODO test if this is required
-target_link_libraries(NIP_Engine spdlog)
