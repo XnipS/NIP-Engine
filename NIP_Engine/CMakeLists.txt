@@ -15,8 +15,7 @@ add_library(NIP_Engine SHARED
     NIP_Engine/Events/ApplicationEvent.h
     NIP_Engine/Events/MouseEvent.h
     NIP_Engine/Events/KeyEvent.h
-    NIP_Engine/Window.h  NIP_Engine/Window.cpp
-    TestWindow.cpp TestWindow.h
+    NIP_Engine/Window.h  NIP_Engine/Window.cpp 
     Test.cpp Test.h
 )
 

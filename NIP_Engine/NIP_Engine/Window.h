@@ -1,5 +1,6 @@
 #pragma once
 
+#include <GLFW/glfw3.h>
 #include <NIP_PCH.h>
 
 #include <functional>
@@ -8,32 +9,41 @@
 #include "NIP_Engine/Core.h"
 
 namespace NIP_Engine {
-struct WindowProps {
+using EventCallbackFn = std::function<void(Event&)>;
+struct WindowData {
   std::string Title;
   unsigned int Width;
   unsigned int Height;
+  EventCallbackFn EventCallback;
+  bool VSync = false;
 
-  WindowProps(const std::string& title = "NIP_Engine",
-              unsigned int width = 1280, unsigned int height = 720)
+  WindowData(const std::string& title = "NIP_Engine", unsigned int width = 1280,
+             unsigned int height = 720)
       : Title(title), Width(width), Height(height) {}
 };
 
 class NIP_ENGINE_API Window {
  public:
-  using EventCallbackFn = std::function<void(Event&)>;
-
+  static Window* Create(const WindowData& props = WindowData());
+  Window(const WindowData& data);
   virtual ~Window();
 
-  virtual void OnUpdate() = 0;
+  void OnUpdate();
 
-  virtual unsigned int GetWidth() const = 0;
-  virtual unsigned int GetHeight() const = 0;
+  inline unsigned int GetWidth() const { return m_Data.Width; };
+  inline unsigned int GetHeight() const { return m_Data.Height; };
 
-  virtual void SetEventCallback(const EventCallbackFn& callback) = 0;
-  virtual void SetVSync(bool enabled) = 0;
-  virtual bool IsVSync() const = 0;
+  inline void SetEventCallback(const EventCallbackFn& callback) {
+    m_Data.EventCallback = callback;
+  }
+  void SetVSync(bool enabled);
+  inline bool IsVSync() const { return m_Data.VSync; };
 
-  static Window* Create(const WindowProps& props = WindowProps());
+ private:
+  // virtual void Init(const WindowData& data);
+  // virtual void Shutdown();
+  GLFWwindow* m_Window;
+  WindowData m_Data;
 };
 
 }  // namespace NIP_Engine

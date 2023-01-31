@@ -17,4 +17,5 @@ class NIP_ENGINE_API Application {
 };
 // Client definable
 Application *CreateApplication();
+
 }  // namespace NIP_Engine

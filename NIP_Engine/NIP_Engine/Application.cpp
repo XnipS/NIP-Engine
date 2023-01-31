@@ -16,5 +16,6 @@ void Application::Run() {
   while (m_Running) {
     m_Window->OnUpdate();
   }
-}
+};
+
 }  // namespace NIP_Engine
