@@ -2,7 +2,6 @@
 INCLUDE_DIRECTORIES(
         . # inlcude parent dir
     vendor/spdlog/include # include spdlog
-	# TODO include glfw
 )
 
 # Compile source to library
@@ -18,7 +17,7 @@ add_library(NIP_Engine SHARED
     NIP_Engine/Window.h  NIP_Engine/Window.cpp 
 )
 
-target_link_libraries(NIP_Engine glfw)
+target_link_libraries(NIP_Engine glfw GL)
 
 # Mark NIP_PCH library as precompile
 #option(NE_USING_PCH "Build NIP-Engine using PCH" ON)
