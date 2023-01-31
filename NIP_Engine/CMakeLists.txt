@@ -16,7 +16,6 @@ add_library(NIP_Engine SHARED
     NIP_Engine/Events/MouseEvent.h
     NIP_Engine/Events/KeyEvent.h
     NIP_Engine/Window.h  NIP_Engine/Window.cpp 
-    Test.cpp Test.h
 )
 
 target_link_libraries(NIP_Engine glfw)
