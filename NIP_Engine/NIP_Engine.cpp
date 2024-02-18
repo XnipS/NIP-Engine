@@ -16,6 +16,5 @@ int main(int argc, char* args[])
       return 0; */
     NE_LOG_INFO("Done!");
 
-    // std::cout << "Done!" << std::endl;
     return 0;
 }
