@@ -1,6 +1,6 @@
-[submodule "NIP_Engine/vendor/spdlog"]
-	path = NIP_Engine/vendor/spdlog
-	url = https://github.com/gabime/spdlog
 [submodule "NIP_Engine/vendor/glfw"]
 	path = NIP_Engine/vendor/glfw
 	url = https://github.com/glfw/glfw.git
+[submodule "NIP_Engine/vendor/spdlog"]
+	path = NIP_Engine/vendor/spdlog
+	url = https://github.com/gabime/spdlog.git
