@@ -1,6 +1,11 @@
 # Get SDL2 from package manager
 find_package(SDL2 REQUIRED)
 
+# Include SDL2
+INCLUDE_DIRECTORIES(
+	${SDL2_INCLUDE_DIRS}
+)
+
 # Glob files
 file(GLOB_RECURSE ENGINE_GLOB
     ./*.cpp
@@ -12,10 +17,8 @@ add_library(NIP_Engine SHARED
     ${ENGINE_GLOB}
 )
 
-# Link SDL2
-target_include_directories(NIP_Engine PRIVATE SDL2)
+# Link SDL2 and GL
+target_link_libraries(NIP_Engine SDL2 SDL2main GL)
+# Include SDL
+#target_include_directories(NIP_Engine PRIVATE SDL2 SDL2main)
 
-# Add NIP_Engine as compile library target
-#target_compile_definitions(NIP_Engine
-#    PRIVATE NIP_ENGINE_LIBRARY
-#)
