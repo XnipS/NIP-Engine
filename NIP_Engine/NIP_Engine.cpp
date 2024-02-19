@@ -48,7 +48,7 @@ int main(int argc, char* args[])
       app->Run();
       delete app;
       return 0; */
-    NE_LOG_INFO("Done!\n");
+    NE_LOG_INFO("Goodbye!\n");
 
     return 0;
 }
