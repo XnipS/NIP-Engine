@@ -1,47 +1,46 @@
 #include "Window.h"
 #include "core.h"
-#include <SDL2/SDL.h>
+#include <GL/freeglut.h>
+#include <chrono>
 #include <iostream>
 #include <stdio.h>
+#include <thread>
 
 // Add hook
 // extern NIP_Engine::Application *NIP_Engine::CreateApplication();
 
-NIP_Engine::Window* window = nullptr;
-Uint32 frameStart;
+NIP_Engine::Window* app = nullptr;
+// NIP_Engine::Render* window = nullptr;
+int frameStart;
 int currentTickTime;
 // Entrypoint
 int main(int argc, char* args[])
 {
     // Create new window
-    window = new NIP_Engine::Window();
+    app = new NIP_Engine::Window();
 
     // Start
-    window->Initialise("NIP-Engine", 1280, 720);
+    app->Initialise("NIP-Engine", 1280, 720);
 
     // Tick loop
-    // Tick loop
-    while (window->Running()) {
+    while (app->Running()) {
         // Start tick time
-        frameStart = SDL_GetTicks();
+        frameStart = glutGet(GLUT_ELAPSED_TIME);
 
-        window->Update();
-        window->Render();
+        app->Update();
+        app->Render();
 
         // Check for delays
-        currentTickTime = SDL_GetTicks() - frameStart;
-
+        currentTickTime = glutGet(GLUT_ELAPSED_TIME) - frameStart;
         if (NE_TICKRATE_TIME > currentTickTime) {
-            SDL_Delay(NE_TICKRATE_TIME - currentTickTime);
+            std::this_thread::sleep_for(std::chrono::milliseconds(NE_TICKRATE_TIME - currentTickTime));
         } else {
-            std::cout << "Tickrate lagging: ";
-            std::cout << (currentTickTime - NE_TICKRATE_TIME);
-            std::cout << "ms behind!" << std::endl;
+            NE_LOG_INFO("Tickrate lagging: %i ms behind!\n", (currentTickTime - NE_TICKRATE_TIME));
         }
     }
 
     // Clean
-    window->Clean();
+    app->Clean();
 
     /* 	 NIP_Engine::Log::Init();
       NE_CORE_INFO("NIP-Engine Initialised!");
@@ -49,7 +48,7 @@ int main(int argc, char* args[])
       app->Run();
       delete app;
       return 0; */
-    NE_LOG_INFO("Done!");
+    NE_LOG_INFO("Done!\n");
 
     return 0;
 }

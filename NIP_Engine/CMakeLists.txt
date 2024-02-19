@@ -18,7 +18,7 @@ add_library(NIP_Engine SHARED
 )
 
 # Link SDL2 and GL
-target_link_libraries(NIP_Engine SDL2 SDL2main GL)
+target_link_libraries(NIP_Engine SDL2 SDL2main GL GLEW glfw GLU glut)
 # Include SDL
 #target_include_directories(NIP_Engine PRIVATE SDL2 SDL2main)
 
