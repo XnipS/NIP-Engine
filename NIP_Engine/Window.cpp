@@ -17,6 +17,7 @@
 #include <vector>
 
 GLFWwindow* win; // Window
+NIP_Engine::Camera* mainCamera;
 GLuint VAO;
 GLuint vertexbuffer;
 GLuint uvbuffer;
@@ -114,27 +115,15 @@ static const GLfloat cube_vertex_data[] = {
     1.0f, -1.0f, 1.0f
 };
 
-void CalculatePerspective(glm::mat4* projection)
-{
-    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    glm::mat4 calculatedProjection = glm::perspective(glm::radians(45.0f), (float)1920 / (float)1080, 0.1f, 100.0f);
-
-    // Camera matrix
-    glm::mat4 View = glm::lookAt(
-        glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
-        glm::vec3(0, 0, 0), // and looks at the origin
-        glm::vec3(0, 1, 0) // Head is up (set to 0,-1,0 to look upside-down)
-    );
-
-    // Model matrix : an identity matrix (model will be at the origin)
-    glm::mat4 Model = glm::mat4(1.0f);
-
-    // Our ModelViewProjection : multiplication of our 3 matrices
-    *projection = calculatedProjection * View * Model; // Remember, matrix multiplication is the other way around
-}
-
 void NIP_Engine::Window::Initialise(const char* title, int w, int h)
 {
+    // Pass window variables
+    width = w;
+    height = h;
+
+    // Create main camera
+    mainCamera = new Camera(this);
+
     // Check if GLFW is working
     if (!glfwInit()) {
         NE_LOG_ERROR("Failed to initialize GLFW\n");
@@ -147,11 +136,8 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     glfwWindowHint(GLFW_OPENGL_FORWARD_COMPAT, GL_TRUE); // To make MacOS happy; should not be needed
     glfwWindowHint(GLFW_OPENGL_PROFILE, GLFW_OPENGL_CORE_PROFILE); // We don't want the old OpenGL
 
-    glEnable(GL_DEPTH_TEST); // Enable depth test
-    glDepthFunc(GL_LESS); // Accept fragment if it closer to the camera than the former one
-
     // Open a window and create a OpenGL context
-    win = glfwCreateWindow(w, h, title, glfwGetPrimaryMonitor(), NULL);
+    win = glfwCreateWindow(width, height, title, glfwGetPrimaryMonitor(), NULL);
     if (win == NULL) {
         NE_LOG_ERROR("Failed to open GLFW window\n");
         glfwTerminate();
@@ -170,9 +156,6 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
 
     // Generate uv buffer
     glGenBuffers(1, &uvbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
-
-    // Calculate Perspective
-    CalculatePerspective(&mvp);
 
     // Load debug shaders
     programID
@@ -221,6 +204,75 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     isRunning = true;
 }
 
+NIP_Engine::Camera::Camera(Window* win)
+{
+    boundedWindow = win;
+}
+void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right)
+{
+    // Called on update
+
+    // Mouselook
+    int window_w, window_h;
+    boundedWindow->GetWindowDimension(&window_w, &window_h);
+    horizontalAngle += lookSpeed * NE_DELTATIME * float(window_w / 2 - *mouse_x);
+    verticalAngle += lookSpeed * NE_DELTATIME * float(window_h / 2 - *mouse_y);
+
+    // Forward vector : Spherical coordinates to Cartesian coordinates conversion
+    dir_forward = glm::vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle),
+        cos(verticalAngle) * cos(horizontalAngle));
+    // Right vector
+    dir_right = glm::vec3(sin(horizontalAngle - NE_PI / 2.0f), 0, cos(horizontalAngle - NE_PI / 2.0f));
+    // Up vector
+    dir_up = glm::cross(dir_right, dir_forward);
+
+    // Move forward
+    if (forward) {
+        position += dir_forward * moveSpeed;
+    }
+    // Move backward
+    if (backward) {
+        position -= dir_forward * moveSpeed;
+    }
+    // Strafe right
+    if (right) {
+        position += dir_right * moveSpeed;
+    }
+    // Strafe left
+    if (left) {
+        position -= dir_right * moveSpeed;
+    }
+}
+
+void NIP_Engine::Window::GetWindowDimension(int* w, int* h)
+{
+    *w = width;
+    *h = height;
+}
+
+void NIP_Engine::Camera::CalculatePerspective(glm::mat4* projection)
+{
+    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    int w, h;
+    boundedWindow->GetWindowDimension(&w, &h);
+    glm::mat4 calculatedProjection = glm::perspective(glm::radians(fieldOfView), (float)w / (float)h, 0.1f, 100.0f);
+
+    // Camera matrix
+    glm::mat4 View = glm::lookAt(
+        position, // Camera is at (4,3,3), in World Space
+        position + dir_forward, // and looks at the origin
+        dir_up // Head is up (set to 0,-1,0 to look upside-down)
+    );
+
+    // Model matrix : an identity matrix (model will be at the origin)
+    glm::mat4 Model = glm::mat4(1.0f);
+
+    // Our ModelViewProjection : multiplication of our 3 matrices
+    *projection = calculatedProjection * View * Model; // Remember, matrix multiplication is the other way around
+}
+
+double xpos, ypos;
+bool m_forward, m_back, m_left, m_right;
 void NIP_Engine::Window::Update()
 {
     // Tick
@@ -228,6 +280,17 @@ void NIP_Engine::Window::Update()
 
     // Handle events
     glfwPollEvents();
+
+    // Grab cursor events
+    glfwGetCursorPos(win, &xpos, &ypos);
+    glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
+    glfwSetCursorPos(win, width / 2, height / 2);
+
+    // Pass input events to camera
+    mainCamera->PassUserInput(&xpos, &ypos, (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS));
+
+    // Calculate Perspective
+    mainCamera->CalculatePerspective(&mvp);
 
     // Check if should close
     if (glfwWindowShouldClose(win)) {
@@ -238,8 +301,13 @@ void NIP_Engine::Window::Update()
 void NIP_Engine::Window::Render()
 {
     // Clear
-    glClearColor(0.5, 0.5, 1.0, 1.0); // Set clear colour
+    glClearColor(0.16, 0.16, 0.16, 1.0); // Set clear colour
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear
+
+    // Enable special features
+    glEnable(GL_DEPTH_TEST); // Enable depth test
+    glEnable(GL_CULL_FACE); // Cull backfaces
+    glDepthFunc(GL_LESS); // Accept fragment if it closer to the camera than the former one
 
     // Bind VAO
     glBindVertexArray(VAO);
