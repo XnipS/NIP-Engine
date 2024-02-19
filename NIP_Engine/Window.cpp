@@ -1,3 +1,4 @@
+#include "BMP_Loader.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Window.h"
 #include "core.h"
@@ -16,10 +17,51 @@
 #include <vector>
 
 GLFWwindow* win; // Window
-GLuint VertexArrayID; // VAO
+GLuint VAO;
 GLuint vertexbuffer;
+GLuint uvbuffer;
 GLuint programID; // Shader program for triangle
 glm::mat4 mvp; // View matrix
+
+// Two UV coordinatesfor each vertex. They were created with Blender. You'll learn shortly how to do this yourself.
+static const GLfloat cube_uv_data[] = {
+    0.000059f, 1.0f - 0.000004f,
+    0.000103f, 1.0f - 0.336048f,
+    0.335973f, 1.0f - 0.335903f,
+    1.000023f, 1.0f - 0.000013f,
+    0.667979f, 1.0f - 0.335851f,
+    0.999958f, 1.0f - 0.336064f,
+    0.667979f, 1.0f - 0.335851f,
+    0.336024f, 1.0f - 0.671877f,
+    0.667969f, 1.0f - 0.671889f,
+    1.000023f, 1.0f - 0.000013f,
+    0.668104f, 1.0f - 0.000013f,
+    0.667979f, 1.0f - 0.335851f,
+    0.000059f, 1.0f - 0.000004f,
+    0.335973f, 1.0f - 0.335903f,
+    0.336098f, 1.0f - 0.000071f,
+    0.667979f, 1.0f - 0.335851f,
+    0.335973f, 1.0f - 0.335903f,
+    0.336024f, 1.0f - 0.671877f,
+    1.000004f, 1.0f - 0.671847f,
+    0.999958f, 1.0f - 0.336064f,
+    0.667979f, 1.0f - 0.335851f,
+    0.668104f, 1.0f - 0.000013f,
+    0.335973f, 1.0f - 0.335903f,
+    0.667979f, 1.0f - 0.335851f,
+    0.335973f, 1.0f - 0.335903f,
+    0.668104f, 1.0f - 0.000013f,
+    0.336098f, 1.0f - 0.000071f,
+    0.000103f, 1.0f - 0.336048f,
+    0.000004f, 1.0f - 0.671870f,
+    0.336024f, 1.0f - 0.671877f,
+    0.000103f, 1.0f - 0.336048f,
+    0.336024f, 1.0f - 0.671877f,
+    0.335973f, 1.0f - 0.335903f,
+    0.667969f, 1.0f - 0.671889f,
+    1.000004f, 1.0f - 0.671847f,
+    0.667979f, 1.0f - 0.335851f
+};
 
 static const GLfloat triangle_vertex_data[] = {
     -1.0f,
@@ -72,6 +114,25 @@ static const GLfloat cube_vertex_data[] = {
     1.0f, -1.0f, 1.0f
 };
 
+void CalculatePerspective(glm::mat4* projection)
+{
+    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
+    glm::mat4 calculatedProjection = glm::perspective(glm::radians(45.0f), (float)1920 / (float)1080, 0.1f, 100.0f);
+
+    // Camera matrix
+    glm::mat4 View = glm::lookAt(
+        glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
+        glm::vec3(0, 0, 0), // and looks at the origin
+        glm::vec3(0, 1, 0) // Head is up (set to 0,-1,0 to look upside-down)
+    );
+
+    // Model matrix : an identity matrix (model will be at the origin)
+    glm::mat4 Model = glm::mat4(1.0f);
+
+    // Our ModelViewProjection : multiplication of our 3 matrices
+    *projection = calculatedProjection * View * Model; // Remember, matrix multiplication is the other way around
+}
+
 void NIP_Engine::Window::Initialise(const char* title, int w, int h)
 {
     // Check if GLFW is working
@@ -101,32 +162,29 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     glewExperimental = true;
     glewInit();
 
-    // Bind VAO
-    glGenVertexArrays(1, &VertexArrayID);
-    glBindVertexArray(VertexArrayID);
+    // Generate and bind VAO
+    glGenVertexArrays(1, &VAO);
+    glBindVertexArray(VAO);
 
+    // Generate vertex buffer
     glGenBuffers(1, &vertexbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertex_data), cube_vertex_data, GL_STATIC_DRAW); // Give our vertices to OpenGL.
 
-    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    glm::mat4 Projection = glm::perspective(glm::radians(45.0f), (float)w / (float)h, 0.1f, 100.0f);
+    // Generate uv buffer
+    glGenBuffers(1, &uvbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
 
-    // Camera matrix
-    glm::mat4 View = glm::lookAt(
-        glm::vec3(4, 3, 3), // Camera is at (4,3,3), in World Space
-        glm::vec3(0, 0, 0), // and looks at the origin
-        glm::vec3(0, 1, 0) // Head is up (set to 0,-1,0 to look upside-down)
-    );
-
-    // Model matrix : an identity matrix (model will be at the origin)
-    glm::mat4 Model = glm::mat4(1.0f);
-
-    // Our ModelViewProjection : multiplication of our 3 matrices
-    mvp = Projection * View * Model; // Remember, matrix multiplication is the other way around
+    // Calculate Perspective
+    CalculatePerspective(&mvp);
 
     // Load debug shaders
-    programID = LoadShaders("../../NIP_Engine/Shaders/debug.vert", "../../NIP_Engine/Shaders/debug.frag");
+    programID
+        = LoadShaders("../../NIP_Engine/Shaders/debug.vert", "../../NIP_Engine/Shaders/debug.frag");
+
+    // Load debug texture
+    LoadBMPFromFile("../../NIP_Engine/Textures/debug_uv.bmp");
+
+    // Texture filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
     // Setup Done
     isRunning = true;
@@ -152,13 +210,21 @@ void NIP_Engine::Window::Render()
     glClearColor(0.5, 0.5, 1.0, 1.0); // Set clear colour
     glClear(GL_COLOR_BUFFER_BIT | GL_DEPTH_BUFFER_BIT); // Clear
 
+    // Bind VAO
+    glBindVertexArray(VAO);
+
     // Pass matrix to vertex shader
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 
-    // Render
-    glEnableVertexAttribArray(0); // Start of VAO
-    // glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex (Dont need this?)
+    // Enable vertex attributes
+    glEnableVertexAttribArray(0); // Vertex position
+    glEnableVertexAttribArray(1); // UVs
+
+    // Bind vertex buffer
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertex_data), cube_vertex_data, GL_STATIC_DRAW); // Give our vertices to OpenGL.
+
     glVertexAttribPointer(
         0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
         3, // size
@@ -167,10 +233,24 @@ void NIP_Engine::Window::Render()
         0, // stride
         (void*)0 // array buffer offset
     );
+
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer); // Bind vertex buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uv_data), cube_uv_data, GL_STATIC_DRAW); // Give our vertices to OpenGL.
+
+    glVertexAttribPointer(
+        1, // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        2, // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        0, // stride
+        (void*)0 // array buffer offset
+    );
+
     // Draw the triangle
     glUseProgram(programID); // Use shader program
     // glDrawArrays(GL_TRIANGLES, 0, 3); // 3 vertices total -> 1 triangle
     glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12 triangles * 3 vertices each
+
     glDisableVertexAttribArray(0); // End of VAO
 
     // Swap buffers
