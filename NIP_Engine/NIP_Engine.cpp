@@ -20,7 +20,7 @@ int main(int argc, char* args[])
     app = new NIP_Engine::Window();
 
     // Start
-    app->Initialise("NIP-Engine", 1280, 720);
+    app->Initialise("NIP-Engine", 1920, 1080);
 
     // Tick loop
     while (app->Running()) {
