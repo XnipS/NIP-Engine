@@ -208,7 +208,7 @@ NIP_Engine::Camera::Camera(Window* win)
 {
     boundedWindow = win;
 }
-void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right)
+void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right, bool up, bool down)
 {
     // Called on update
 
@@ -241,6 +241,14 @@ void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool fo
     // Strafe left
     if (left) {
         position -= dir_right * moveSpeed;
+    }
+    // Vertical up
+    if (up) {
+        position += dir_up * moveSpeed;
+    }
+    // Vertical down
+    if (down) {
+        position -= dir_up * moveSpeed;
     }
 }
 
@@ -287,7 +295,7 @@ void NIP_Engine::Window::Update()
     glfwSetCursorPos(win, width / 2, height / 2);
 
     // Pass input events to camera
-    mainCamera->PassUserInput(&xpos, &ypos, (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS));
+    mainCamera->PassUserInput(&xpos, &ypos, (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS));
 
     // Calculate Perspective
     mainCamera->CalculatePerspective(&mvp);

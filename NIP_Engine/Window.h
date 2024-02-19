@@ -26,7 +26,7 @@ public:
     Camera(Window* win);
 
     void CalculatePerspective(glm::mat4* projection);
-    void PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right);
+    void PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right, bool up, bool down);
 
 private:
     Window* boundedWindow;
