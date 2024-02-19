@@ -162,9 +162,8 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     glewExperimental = true;
     glewInit();
 
-    // Generate and bind VAO
+    // Generate VAO buffer
     glGenVertexArrays(1, &VAO);
-    glBindVertexArray(VAO);
 
     // Generate vertex buffer
     glGenBuffers(1, &vertexbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
@@ -185,6 +184,38 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     // Texture filtering
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    // Bind VAO
+    glBindVertexArray(VAO);
+
+    // Bind vertex buffer
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertex_data), cube_vertex_data, GL_STATIC_DRAW); // Give our vertices to OpenGL.
+
+    glVertexAttribPointer(
+        0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        3, // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        0, // stride
+        (void*)0 // array buffer offset
+    );
+
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer); // Bind uv buffer
+    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uv_data), cube_uv_data, GL_STATIC_DRAW); // Give our uvs to OpenGL.
+
+    glVertexAttribPointer(
+        1, // attribute 0. No particular reason for 0, but must match the layout in the shader.
+        2, // size
+        GL_FLOAT, // type
+        GL_FALSE, // normalized?
+        0, // stride
+        (void*)0 // array buffer offset
+    );
+
+    // Enable vertex attributes
+    glEnableVertexAttribArray(0); // Vertex position
+    glEnableVertexAttribArray(1); // UVs
 
     // Setup Done
     isRunning = true;
@@ -213,45 +244,18 @@ void NIP_Engine::Window::Render()
     // Bind VAO
     glBindVertexArray(VAO);
 
+    // Use generated shader program
+    glUseProgram(programID);
+
     // Pass matrix to vertex shader
     GLuint MatrixID = glGetUniformLocation(programID, "MVP");
     glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
 
-    // Enable vertex attributes
-    glEnableVertexAttribArray(0); // Vertex position
-    glEnableVertexAttribArray(1); // UVs
-
-    // Bind vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertex_data), cube_vertex_data, GL_STATIC_DRAW); // Give our vertices to OpenGL.
-
-    glVertexAttribPointer(
-        0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3, // size
-        GL_FLOAT, // type
-        GL_FALSE, // normalized?
-        0, // stride
-        (void*)0 // array buffer offset
-    );
-
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer); // Bind vertex buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uv_data), cube_uv_data, GL_STATIC_DRAW); // Give our vertices to OpenGL.
-
-    glVertexAttribPointer(
-        1, // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        2, // size
-        GL_FLOAT, // type
-        GL_FALSE, // normalized?
-        0, // stride
-        (void*)0 // array buffer offset
-    );
-
-    // Draw the triangle
-    glUseProgram(programID); // Use shader program
-    // glDrawArrays(GL_TRIANGLES, 0, 3); // 3 vertices total -> 1 triangle
+    // Draw cube
     glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12 triangles * 3 vertices each
 
-    glDisableVertexAttribArray(0); // End of VAO
+    // Unbind VAO
+    glBindVertexArray(0);
 
     // Swap buffers
     glfwSwapBuffers(win);
