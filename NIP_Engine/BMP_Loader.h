@@ -17,15 +17,15 @@ static inline void LoadBMPFromFile(const char* path)
     // Load file
     FILE* file = fopen(path, "rb");
     if (!file) {
-        NE_LOG_ERROR("Image could not be loaded at %s", path);
+        NE_LOG_ERROR("Image could not be loaded at %s\n", path);
     }
 
     // Check header contents
     if (fread(header, 1, 54, file) != 54) { // If not 54 bytes read : problem
-        NE_LOG_ERROR("Incorrect BMP file header size at %s", path);
+        NE_LOG_ERROR("Incorrect BMP file header size at %s\n", path);
     }
     if (header[0] != 'B' || header[1] != 'M') { // Check typical BMP header contents
-        NE_LOG_ERROR("Incorrect BMP file header at %s", path);
+        NE_LOG_ERROR("Incorrect BMP file header at %s\n", path);
     }
 
     // Read ints from the byte array

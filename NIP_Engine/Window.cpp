@@ -1,4 +1,5 @@
 #include "BMP_Loader.h"
+#include "OBJ_Loader.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Window.h"
 #include "core.h"
@@ -23,97 +24,6 @@ GLuint vertexbuffer;
 GLuint uvbuffer;
 GLuint programID; // Shader program for triangle
 glm::mat4 mvp; // View matrix
-
-// Two UV coordinatesfor each vertex. They were created with Blender. You'll learn shortly how to do this yourself.
-static const GLfloat cube_uv_data[] = {
-    0.000059f, 1.0f - 0.000004f,
-    0.000103f, 1.0f - 0.336048f,
-    0.335973f, 1.0f - 0.335903f,
-    1.000023f, 1.0f - 0.000013f,
-    0.667979f, 1.0f - 0.335851f,
-    0.999958f, 1.0f - 0.336064f,
-    0.667979f, 1.0f - 0.335851f,
-    0.336024f, 1.0f - 0.671877f,
-    0.667969f, 1.0f - 0.671889f,
-    1.000023f, 1.0f - 0.000013f,
-    0.668104f, 1.0f - 0.000013f,
-    0.667979f, 1.0f - 0.335851f,
-    0.000059f, 1.0f - 0.000004f,
-    0.335973f, 1.0f - 0.335903f,
-    0.336098f, 1.0f - 0.000071f,
-    0.667979f, 1.0f - 0.335851f,
-    0.335973f, 1.0f - 0.335903f,
-    0.336024f, 1.0f - 0.671877f,
-    1.000004f, 1.0f - 0.671847f,
-    0.999958f, 1.0f - 0.336064f,
-    0.667979f, 1.0f - 0.335851f,
-    0.668104f, 1.0f - 0.000013f,
-    0.335973f, 1.0f - 0.335903f,
-    0.667979f, 1.0f - 0.335851f,
-    0.335973f, 1.0f - 0.335903f,
-    0.668104f, 1.0f - 0.000013f,
-    0.336098f, 1.0f - 0.000071f,
-    0.000103f, 1.0f - 0.336048f,
-    0.000004f, 1.0f - 0.671870f,
-    0.336024f, 1.0f - 0.671877f,
-    0.000103f, 1.0f - 0.336048f,
-    0.336024f, 1.0f - 0.671877f,
-    0.335973f, 1.0f - 0.335903f,
-    0.667969f, 1.0f - 0.671889f,
-    1.000004f, 1.0f - 0.671847f,
-    0.667979f, 1.0f - 0.335851f
-};
-
-static const GLfloat triangle_vertex_data[] = {
-    -1.0f,
-    -1.0f,
-    0.0f,
-    1.0f,
-    -1.0f,
-    0.0f,
-    0.0f,
-    1.0f,
-    0.0f,
-};
-
-static const GLfloat cube_vertex_data[] = {
-    -1.0f, -1.0f, -1.0f, // triangle 1 : begin
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f, // triangle 1 : end
-    1.0f, 1.0f, -1.0f, // triangle 2 : begin
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, -1.0f, // triangle 2 : end
-    1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f,
-    -1.0f, -1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-    -1.0f, -1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, -1.0f,
-    1.0f, -1.0f, -1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, -1.0f,
-    -1.0f, 1.0f, -1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, -1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, 1.0f, 1.0f,
-    -1.0f, 1.0f, 1.0f,
-    1.0f, -1.0f, 1.0f
-};
 
 void NIP_Engine::Window::Initialise(const char* title, int w, int h)
 {
@@ -164,6 +74,12 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     // Load debug texture
     LoadBMPFromFile("../../NIP_Engine/Textures/debug_uv.bmp");
 
+    // Load debug model
+    std::vector<glm::vec3> vertices;
+    std::vector<glm::vec2> uvs;
+    std::vector<glm::vec3> normals; // Won't be used at the moment.
+    LoadOBJFromFile("../../NIP_Engine/Models/debug.obj", &vertices, &uvs, &normals);
+
     // Texture filtering
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
@@ -173,7 +89,7 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
 
     // Bind vertex buffer
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_vertex_data), cube_vertex_data, GL_STATIC_DRAW); // Give our vertices to OpenGL.
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW); // Give our vertices to OpenGL.
 
     glVertexAttribPointer(
         0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
@@ -185,7 +101,7 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     );
 
     glBindBuffer(GL_ARRAY_BUFFER, uvbuffer); // Bind uv buffer
-    glBufferData(GL_ARRAY_BUFFER, sizeof(cube_uv_data), cube_uv_data, GL_STATIC_DRAW); // Give our uvs to OpenGL.
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW); // Give our uvs to OpenGL.
 
     glVertexAttribPointer(
         1, // attribute 0. No particular reason for 0, but must match the layout in the shader.
@@ -210,13 +126,20 @@ NIP_Engine::Camera::Camera(Window* win)
 }
 void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right, bool up, bool down)
 {
-    // Called on update
+    // Called on fixedupdate
 
     // Mouselook
     int window_w, window_h;
     boundedWindow->GetWindowDimension(&window_w, &window_h);
     horizontalAngle += lookSpeed * NE_DELTATIME * float(window_w / 2 - *mouse_x);
     verticalAngle += lookSpeed * NE_DELTATIME * float(window_h / 2 - *mouse_y);
+
+    // Clamp vertical angle
+    if (verticalAngle > NE_PI / 2) {
+        verticalAngle = NE_PI / 2;
+    } else if (verticalAngle < -NE_PI / 2) {
+        verticalAngle = -NE_PI / 2;
+    }
 
     // Forward vector : Spherical coordinates to Cartesian coordinates conversion
     dir_forward = glm::vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle),
@@ -343,6 +266,7 @@ void NIP_Engine::Window::Clean()
     NE_LOG_INFO("Window Cleaned!\n");
 }
 
+// Shader loader
 GLuint NIP_Engine::Window::LoadShaders(const char* vertex_path, const char* frag_path)
 {
     // Create the shaders
