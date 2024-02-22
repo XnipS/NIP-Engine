@@ -1,5 +1,7 @@
 #include "BMP_Loader.h"
-#include "OBJ_Loader.h"
+#include "Entity.h"
+#include "EntityCamera.h"
+#include "EntityRenderer.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Window.h"
 #include "core.h"
@@ -19,10 +21,11 @@
 
 GLFWwindow* win; // Window
 NIP_Engine::Camera* mainCamera;
+NIP_Engine::EntitySystem entitySystem;
+NIP_Engine::EntityRenderer entityRenderer;
+NIP_Engine::EntityCamera entityCamera;
 GLuint VAO;
-GLuint vertexbuffer;
-GLuint uvbuffer;
-GLuint programID; // Shader program for triangle
+
 glm::mat4 mvp; // View matrix
 
 void NIP_Engine::Window::Initialise(const char* title, int w, int h)
@@ -30,9 +33,6 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     // Pass window variables
     width = w;
     height = h;
-
-    // Create main camera
-    mainCamera = new Camera(this);
 
     // Check if GLFW is working
     if (!glfwInit()) {
@@ -61,145 +61,32 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     // Generate VAO buffer
     glGenVertexArrays(1, &VAO);
 
-    // Generate vertex buffer
-    glGenBuffers(1, &vertexbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
-
-    // Generate uv buffer
-    glGenBuffers(1, &uvbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
-
-    // Load debug shaders
-    programID
-        = LoadShaders("../../NIP_Engine/Shaders/debug.vert", "../../NIP_Engine/Shaders/debug.frag");
-
-    // Load debug texture
-    LoadBMPFromFile("../../NIP_Engine/Textures/debug_uv.bmp");
-
-    // Load debug model
-    std::vector<glm::vec3> vertices;
-    std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals; // Won't be used at the moment.
-    LoadOBJFromFile("../../NIP_Engine/Models/debug.obj", &vertices, &uvs, &normals);
-
-    // Texture filtering
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
-    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
-
     // Bind VAO
     glBindVertexArray(VAO);
 
-    // Bind vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex buffer
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW); // Give our vertices to OpenGL.
-
-    glVertexAttribPointer(
-        0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3, // size
-        GL_FLOAT, // type
-        GL_FALSE, // normalized?
-        0, // stride
-        (void*)0 // array buffer offset
-    );
-
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer); // Bind uv buffer
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW); // Give our uvs to OpenGL.
-
-    glVertexAttribPointer(
-        1, // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        2, // size
-        GL_FLOAT, // type
-        GL_FALSE, // normalized?
-        0, // stride
-        (void*)0 // array buffer offset
-    );
-
-    // Enable vertex attributes
-    glEnableVertexAttribArray(0); // Vertex position
-    glEnableVertexAttribArray(1); // UVs
-
     // Setup Done
     isRunning = true;
-}
 
-NIP_Engine::Camera::Camera(Window* win)
-{
-    boundedWindow = win;
-}
-void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right, bool up, bool down)
-{
-    // Called on fixedupdate
+    // Create camera object
+    Entity cam = entitySystem.CreateGameObject();
 
-    // Mouselook
-    int window_w, window_h;
-    boundedWindow->GetWindowDimension(&window_w, &window_h);
-    horizontalAngle += lookSpeed * NE_DELTATIME * float(window_w / 2 - *mouse_x);
-    verticalAngle += lookSpeed * NE_DELTATIME * float(window_h / 2 - *mouse_y);
+    mainCamera = entityCamera.CreateCamera(cam.GetObjectID(), width, height);
 
-    // Clamp vertical angle
-    if (verticalAngle > NE_PI / 2) {
-        verticalAngle = NE_PI / 2;
-    } else if (verticalAngle < -NE_PI / 2) {
-        verticalAngle = -NE_PI / 2;
-    }
+    // Create new object
+    Entity cube = entitySystem.CreateGameObject();
 
-    // Forward vector : Spherical coordinates to Cartesian coordinates conversion
-    dir_forward = glm::vec3(cos(verticalAngle) * sin(horizontalAngle), sin(verticalAngle),
-        cos(verticalAngle) * cos(horizontalAngle));
-    // Right vector
-    dir_right = glm::vec3(sin(horizontalAngle - NE_PI / 2.0f), 0, cos(horizontalAngle - NE_PI / 2.0f));
-    // Up vector
-    dir_up = glm::cross(dir_right, dir_forward);
+    // Create new renderer for cube
+    MeshRenderer* renderer = entityRenderer.CreateMeshRenderer(cube.GetObjectID());
 
-    // Move forward
-    if (forward) {
-        position += dir_forward * moveSpeed;
-    }
-    // Move backward
-    if (backward) {
-        position -= dir_forward * moveSpeed;
-    }
-    // Strafe right
-    if (right) {
-        position += dir_right * moveSpeed;
-    }
-    // Strafe left
-    if (left) {
-        position -= dir_right * moveSpeed;
-    }
-    // Vertical up
-    if (up) {
-        position += dir_up * moveSpeed;
-    }
-    // Vertical down
-    if (down) {
-        position -= dir_up * moveSpeed;
-    }
+    renderer->LinkMVP(&mvp);
+
+    entityRenderer.Start();
 }
 
 void NIP_Engine::Window::GetWindowDimension(int* w, int* h)
 {
     *w = width;
     *h = height;
-}
-
-void NIP_Engine::Camera::CalculatePerspective(glm::mat4* projection)
-{
-    // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    int w, h;
-    boundedWindow->GetWindowDimension(&w, &h);
-    glm::mat4 calculatedProjection = glm::perspective(glm::radians(fieldOfView), (float)w / (float)h, 0.1f, 100.0f);
-
-    // Camera matrix
-    glm::mat4 View = glm::lookAt(
-        position, // Camera is at (4,3,3), in World Space
-        position + dir_forward, // and looks at the origin
-        dir_up // Head is up (set to 0,-1,0 to look upside-down)
-    );
-
-    // Model matrix : an identity matrix (model will be at the origin)
-    glm::mat4 Model = glm::mat4(1.0f);
-
-    // Our ModelViewProjection : multiplication of our 3 matrices
-    *projection = calculatedProjection * View * Model; // Remember, matrix multiplication is the other way around
 }
 
 double xpos, ypos;
@@ -243,15 +130,8 @@ void NIP_Engine::Window::Render()
     // Bind VAO
     glBindVertexArray(VAO);
 
-    // Use generated shader program
-    glUseProgram(programID);
-
-    // Pass matrix to vertex shader
-    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &mvp[0][0]);
-
-    // Draw cube
-    glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12 triangles * 3 vertices each
+    // Update entities
+    entityRenderer.Update();
 
     // Unbind VAO
     glBindVertexArray(0);
@@ -264,102 +144,4 @@ void NIP_Engine::Window::Render()
 void NIP_Engine::Window::Clean()
 {
     NE_LOG_INFO("Window Cleaned!\n");
-}
-
-// Shader loader
-GLuint NIP_Engine::Window::LoadShaders(const char* vertex_path, const char* frag_path)
-{
-    // Create the shaders
-    GLuint VertexShaderID = glCreateShader(GL_VERTEX_SHADER);
-    GLuint FragmentShaderID = glCreateShader(GL_FRAGMENT_SHADER);
-
-    // Read the Vertex Shader code from the file
-    std::string VertexShaderCode;
-    std::ifstream VertexShaderStream(vertex_path, std::ios::in);
-    if (VertexShaderStream.is_open()) {
-        std::stringstream sstr;
-        sstr << VertexShaderStream.rdbuf();
-        VertexShaderCode = sstr.str();
-        VertexShaderStream.close();
-    } else {
-
-        NE_LOG_ERROR("Error loading vertex shader: %s", std::strerror(errno));
-        getchar();
-        return 0;
-    }
-
-    // Read the Fragment Shader code from the file
-    std::string FragmentShaderCode;
-    std::ifstream FragmentShaderStream(frag_path, std::ios::in);
-    if (FragmentShaderStream.is_open()) {
-        std::stringstream sstr;
-        sstr << FragmentShaderStream.rdbuf();
-        FragmentShaderCode = sstr.str();
-        FragmentShaderStream.close();
-    }
-    /* 	else {
-
-            NE_LOG_ERROR("Error loading shader: %s", std::strerror(errno));
-            getchar();
-            return 0;
-        } */
-
-    GLint Result = GL_FALSE;
-    int InfoLogLength;
-
-    // Compile Vertex Shader
-    NE_LOG_INFO("Compiling vertex shader : %s\n", vertex_path);
-    char const* VertexSourcePointer = VertexShaderCode.c_str();
-    glShaderSource(VertexShaderID, 1, &VertexSourcePointer, NULL);
-    glCompileShader(VertexShaderID);
-
-    // Check Vertex Shader
-    glGetShaderiv(VertexShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(VertexShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> VertexShaderErrorMessage(InfoLogLength + 1);
-        glGetShaderInfoLog(VertexShaderID, InfoLogLength, NULL, &VertexShaderErrorMessage[0]);
-        NE_LOG_ERROR("%s\n", &VertexShaderErrorMessage[0]);
-    }
-
-    // Compile Fragment Shader
-    NE_LOG_INFO("Compiling frag shader : %s\n", frag_path);
-    char const* FragmentSourcePointer = FragmentShaderCode.c_str();
-    glShaderSource(FragmentShaderID, 1, &FragmentSourcePointer, NULL);
-    glCompileShader(FragmentShaderID);
-
-    // Check Fragment Shader
-    glGetShaderiv(FragmentShaderID, GL_COMPILE_STATUS, &Result);
-    glGetShaderiv(FragmentShaderID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> FragmentShaderErrorMessage(InfoLogLength + 1);
-        glGetShaderInfoLog(FragmentShaderID, InfoLogLength, NULL, &FragmentShaderErrorMessage[0]);
-        NE_LOG_ERROR("%s\n", &FragmentShaderErrorMessage[0]);
-    }
-
-    // Link the program
-    NE_LOG_INFO("Linking generated program\n");
-    GLuint ProgramID = glCreateProgram();
-    glAttachShader(ProgramID, VertexShaderID);
-    glAttachShader(ProgramID, FragmentShaderID);
-    glLinkProgram(ProgramID);
-
-    // Check the program
-    glGetProgramiv(ProgramID, GL_LINK_STATUS, &Result);
-    glGetProgramiv(ProgramID, GL_INFO_LOG_LENGTH, &InfoLogLength);
-    if (InfoLogLength > 0) {
-        std::vector<char> ProgramErrorMessage(InfoLogLength + 1);
-        glGetProgramInfoLog(ProgramID, InfoLogLength, NULL, &ProgramErrorMessage[0]);
-        NE_LOG_ERROR("%s\n", &ProgramErrorMessage[0]);
-    }
-
-    glDetachShader(ProgramID, VertexShaderID);
-    glDetachShader(ProgramID, FragmentShaderID);
-
-    glDeleteShader(VertexShaderID);
-    glDeleteShader(FragmentShaderID);
-
-    NE_LOG_INFO("Done!\n");
-
-    return ProgramID;
 }
