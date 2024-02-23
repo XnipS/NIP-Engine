@@ -23,7 +23,7 @@ build/
 *.core
 *.moc
 *.o
-*.obj
+#*.obj
 *.orig
 *.rej
 *.so
