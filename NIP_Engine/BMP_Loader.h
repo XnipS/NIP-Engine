@@ -39,7 +39,7 @@ static inline void LoadBMPFromFile(const char* path)
         imageSize = width * height * 3; // 3 : one byte for each Red, Green and Blue component
     }
     if (dataPos == 0) {
-        dataPos = 54; // Typical BMP header
+        dataPos = 54; // Typical BMP header REMEMBER TO DO NOT WRITE COLOUR INFORMATION
     }
 
     // Generate buffer
@@ -62,6 +62,10 @@ static inline void LoadBMPFromFile(const char* path)
     glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_BGR, GL_UNSIGNED_BYTE, data);
 
     // Texture filtering
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_CLAMP);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_CLAMP);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+    delete (data);
 }

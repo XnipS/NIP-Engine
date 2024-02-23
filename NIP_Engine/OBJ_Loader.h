@@ -1,14 +1,7 @@
 #pragma once
-
 #include "core.h"
-#include <GL/glew.h>
-#include <GLFW/glfw3.h>
-#include <bits/types/FILE.h>
-#include <cstdio>
 #include <cstring>
-#include <glm/fwd.hpp>
 #include <glm/glm.hpp>
-#include <new>
 #include <string>
 #include <vector>
 
@@ -52,7 +45,7 @@ static inline void LoadOBJFromFile(const char* path, std::vector<glm::vec3>* ver
             unsigned int vertexIndex[3], uvIndex[3], normalIndex[3];
             int matches = fscanf(file, "%d/%d/%d %d/%d/%d %d/%d/%d\n", &vertexIndex[0], &uvIndex[0], &normalIndex[0], &vertexIndex[1], &uvIndex[1], &normalIndex[1], &vertexIndex[2], &uvIndex[2], &normalIndex[2]);
             if (matches != 9) {
-                NE_LOG_ERROR("Model is too advanced for this engine!\n");
+                NE_LOG_ERROR("Model is too advanced for this engine! (Requires triangulation!)\n");
             }
             vertexIndices.push_back(vertexIndex[0]);
             vertexIndices.push_back(vertexIndex[1]);

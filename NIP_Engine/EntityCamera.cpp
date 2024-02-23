@@ -13,7 +13,6 @@ NIP_Engine::Camera* NIP_Engine::EntityCamera::CreateCamera(int owner, int w, int
     return &cameras.back();
 }
 
-// Mesh Renderer
 void NIP_Engine::Camera::Start()
 {
 }
@@ -71,21 +70,23 @@ void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool fo
     }
 }
 
-void NIP_Engine::Camera::CalculatePerspective(glm::mat4* projection)
+void NIP_Engine::Camera::CalculatePerspective(glm::mat4* mvp, glm::mat4* mmatrix, glm::mat4* vmatrix)
 {
     // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
-    glm::mat4 calculatedProjection = glm::perspective(glm::radians(fieldOfView), (float)window_width / (float)window_height, 0.1f, 100.0f);
+    glm::mat4 calculatedProjection = glm::perspective(glm::radians(fieldOfView), (float)window_width / (float)window_height, 0.01f, 100.0f);
 
     // Camera matrix
     glm::mat4 View = glm::lookAt(
-        position, // Camera is at (4,3,3), in World Space
-        position + dir_forward, // and looks at the origin
-        dir_up // Head is up (set to 0,-1,0 to look upside-down)
+        position, // Position
+        position + dir_forward, // Direction
+        dir_up // Which way is up
     );
 
     // Model matrix : an identity matrix (model will be at the origin)
     glm::mat4 Model = glm::mat4(1.0f);
 
     // Our ModelViewProjection : multiplication of our 3 matrices
-    *projection = calculatedProjection * View * Model; // Remember, matrix multiplication is the other way around
+    *mvp = calculatedProjection * View * Model; // Remember, matrix multiplication is the other way around
+    *mmatrix = Model;
+    *vmatrix = View;
 }

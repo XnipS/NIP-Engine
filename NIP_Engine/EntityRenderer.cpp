@@ -2,6 +2,7 @@
 #include "BMP_Loader.h"
 #include "OBJ_Loader.h"
 #include "Shader_Loader.h"
+#include <glm/fwd.hpp>
 
 NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::CreateMeshRenderer(int owner)
 {
@@ -21,6 +22,9 @@ void NIP_Engine::MeshRenderer::Start()
     // Generate uv buffer
     glGenBuffers(1, &uvbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
 
+    // Generate normal buffer
+    glGenBuffers(1, &normalbuffer);
+
     // Load debug shaders
     programID
         = LoadShaders("../../NIP_Engine/Shaders/debug.vert", "../../NIP_Engine/Shaders/debug.frag");
@@ -32,47 +36,63 @@ void NIP_Engine::MeshRenderer::Start()
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals; // Won't be used at the moment.
-    LoadOBJFromFile("../../NIP_Engine/Models/debug.obj", &vertices, &uvs, &normals);
+    LoadOBJFromFile("../../NIP_Engine/Models/monkey.obj", &vertices, &uvs, &normals);
 
-    // Bind vertex buffer
-    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer); // Bind vertex buffer
-    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW); // Give our vertices to OpenGL.
+    vertexCount = vertices.size();
 
-    glVertexAttribPointer(
-        0, // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        3, // size
-        GL_FLOAT, // type
-        GL_FALSE, // normalized?
-        0, // stride
-        (void*)0 // array buffer offset
-    );
+    // VERTEX BUFFER
+    glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
+    glBufferData(GL_ARRAY_BUFFER, vertices.size() * sizeof(glm::vec3), &vertices[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(0, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(0);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind vertex buffer
 
-    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer); // Bind uv buffer
-    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW); // Give our uvs to OpenGL.
+    // UV BUFFER
+    glBindBuffer(GL_ARRAY_BUFFER, uvbuffer);
+    glBufferData(GL_ARRAY_BUFFER, uvs.size() * sizeof(glm::vec2), &uvs[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(1, 2, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(1);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind UV buffer
 
-    glVertexAttribPointer(
-        1, // attribute 0. No particular reason for 0, but must match the layout in the shader.
-        2, // size
-        GL_FLOAT, // type
-        GL_FALSE, // normalized?
-        0, // stride
-        (void*)0 // array buffer offset
-    );
+    // NORMAL BUFFER
+    glBindBuffer(GL_ARRAY_BUFFER, normalbuffer);
+    glBufferData(GL_ARRAY_BUFFER, normals.size() * sizeof(glm::vec3), &normals[0], GL_STATIC_DRAW);
+    glVertexAttribPointer(2, 3, GL_FLOAT, GL_FALSE, 0, (void*)0);
+    glEnableVertexAttribArray(2);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind normal buffer
 
-    // Enable vertex attributes
-    glEnableVertexAttribArray(0); // Vertex position
-    glEnableVertexAttribArray(1); // UVs
+    // Use generated shader program
+    glUseProgram(programID);
+
+    // Get shader uniforms
+    // Pass matrix to vertex shader
+    MVPID = glGetUniformLocation(programID, "MVP");
+
+    // Pass model matrix to vertex shader
+    ModelMatrixID = glGetUniformLocation(programID, "M");
+
+    // Pass view matrix to vertex shader
+    ViewMatrixID = glGetUniformLocation(programID, "V");
+
+    // Pass light position to vertex shader
+    LightPosID = glGetUniformLocation(programID, "LightPosition_worldspace");
 }
 
 void NIP_Engine::MeshRenderer::Update()
 {
-    // Use generated shader program
-    glUseProgram(programID);
 
     // Pass matrix to vertex shader
-    GLuint MatrixID = glGetUniformLocation(programID, "MVP");
-    glUniformMatrix4fv(MatrixID, 1, GL_FALSE, &(*mvp)[0][0]);
+    glUniformMatrix4fv(MVPID, 1, GL_FALSE, &(*mvp)[0][0]);
+
+    // Pass model matrix to vertex shader
+    glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &(*modelMatrix)[0][0]);
+
+    // Pass view matrix to vertex shader
+    glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &(*viewMatrix)[0][0]);
+
+    // Pass light position to vertex shader
+    glUniform3f(LightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
 
     // Draw cube
-    glDrawArrays(GL_TRIANGLES, 0, 12 * 3); // 12 triangles * 3 vertices each
+    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
 }

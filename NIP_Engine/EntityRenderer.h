@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+#include <glm/fwd.hpp>
 #include <vector>
 namespace NIP_Engine {
 
@@ -10,18 +11,38 @@ public:
 
     void Update() override;
 
-    void LinkMVP(glm::mat4* matrix)
+    void LinkMatrices(glm::mat4* mvpmatrix, glm::mat4* mmatrix, glm::mat4* vmatrix)
     {
-        mvp = matrix;
+        mvp = mvpmatrix;
+        modelMatrix = mmatrix;
+        viewMatrix = vmatrix;
     }
 
 private:
-    GLuint programID; // Shader program
+    // Shader program
+    GLuint programID;
+    // Texture TODO
+    // GLuint textureID;
+
+    // Buffers
     GLuint vertexbuffer;
     GLuint uvbuffer;
+    GLuint normalbuffer;
 
+    // Pass to vertex shader
+    GLuint MVPID;
+    GLuint ModelMatrixID;
+    GLuint ViewMatrixID;
+    GLuint LightPosID;
+
+    // Pointers
     glm::mat4* mvp;
-	char* modelPath;
+    glm::mat4* modelMatrix;
+    glm::mat4* viewMatrix;
+    char* modelPath;
+
+    glm::vec3 lightPosition = glm::vec3(5, 5, 5);
+    int vertexCount;
 };
 
 class EntityRenderer {

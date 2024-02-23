@@ -10,7 +10,8 @@ public:
 
     void Update() override;
 
-    void CalculatePerspective(glm::mat4* projection);
+    void CalculatePerspective(glm::mat4* mvp, glm::mat4* mmatrix, glm::mat4* vmatrix);
+
     void PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right, bool up, bool down);
 
     void SetWindowSize(int w, int h)
@@ -22,7 +23,7 @@ public:
 private:
     int window_height, window_width;
     glm::vec3 position
-        = glm::vec3(0, 0, 0);
+        = glm::vec3(0, 0, -5);
     float horizontalAngle = 0.0f;
     float verticalAngle = 0.0f;
     float fieldOfView = 90.0f;

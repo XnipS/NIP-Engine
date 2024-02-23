@@ -26,7 +26,9 @@ NIP_Engine::EntityRenderer entityRenderer;
 NIP_Engine::EntityCamera entityCamera;
 GLuint VAO;
 
-glm::mat4 mvp; // View matrix
+glm::mat4 mvpMatrix; // Perspective matrix
+glm::mat4 modelMatrix; // Model matrix
+glm::mat4 viewMatrix; // View matrix
 
 void NIP_Engine::Window::Initialise(const char* title, int w, int h)
 {
@@ -78,7 +80,7 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     // Create new renderer for cube
     MeshRenderer* renderer = entityRenderer.CreateMeshRenderer(cube.GetObjectID());
 
-    renderer->LinkMVP(&mvp);
+    renderer->LinkMatrices(&mvpMatrix, &modelMatrix, &viewMatrix);
 
     entityRenderer.Start();
 }
@@ -108,7 +110,7 @@ void NIP_Engine::Window::Update()
     mainCamera->PassUserInput(&xpos, &ypos, (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS));
 
     // Calculate Perspective
-    mainCamera->CalculatePerspective(&mvp);
+    mainCamera->CalculatePerspective(&mvpMatrix, &modelMatrix, &viewMatrix);
 
     // Check if should close
     if (glfwWindowShouldClose(win)) {
