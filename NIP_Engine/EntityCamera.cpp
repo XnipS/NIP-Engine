@@ -26,8 +26,8 @@ void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool fo
     // Called on fixedupdate
 
     // Mouselook
-    horizontalAngle += lookSpeed * NE_DELTATIME * float(window_width / 2 - *mouse_x);
-    verticalAngle += lookSpeed * NE_DELTATIME * float(window_height / 2 - *mouse_y);
+    horizontalAngle += lookSpeed * NE_DELTATIME * float(window_width / 2.0 - *mouse_x);
+    verticalAngle += lookSpeed * NE_DELTATIME * float(window_height / 2.0 - *mouse_y);
 
     // Clamp vertical angle
     if (verticalAngle > NE_PI / 2) {
