@@ -104,7 +104,7 @@ void NIP_Engine::Window::Update()
     // Grab cursor events
     glfwGetCursorPos(win, &xpos, &ypos);
     glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
-    glfwSetCursorPos(win, width / 2, height / 2);
+    glfwSetCursorPos(win, width / 2.0, height / 2.0);
 
     // Pass input events to camera
     mainCamera->PassUserInput(&xpos, &ypos, (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS));

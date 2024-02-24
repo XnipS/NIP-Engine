@@ -16,14 +16,11 @@ NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::CreateMeshRenderer(int own
 // Mesh Renderer
 void NIP_Engine::MeshRenderer::Start()
 {
-    // Generate vertex buffer
+    // Generate buffers
     glGenBuffers(1, &vertexbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
-
-    // Generate uv buffer
-    glGenBuffers(1, &uvbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
-
-    // Generate normal buffer
+    glGenBuffers(1, &uvbuffer);
     glGenBuffers(1, &normalbuffer);
+    glGenBuffers(1, &indexbuffer);
 
     // Load debug shaders
     programID
@@ -36,9 +33,8 @@ void NIP_Engine::MeshRenderer::Start()
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals; // Won't be used at the moment.
-    LoadOBJFromFile("../../NIP_Engine/Models/monkey.obj", &vertices, &uvs, &normals);
 
-    vertexCount = vertices.size();
+    LoadOBJFromFileIndexed("../../NIP_Engine/Models/sphere.obj", &vertices, &uvs, &normals, &vertexIndices);
 
     // VERTEX BUFFER
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -61,20 +57,18 @@ void NIP_Engine::MeshRenderer::Start()
     glEnableVertexAttribArray(2);
     glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind normal buffer
 
+    // INDEX BUFFER
+    glBindBuffer(GL_ELEMENT_ARRAY_BUFFER, indexbuffer);
+    glBufferData(GL_ELEMENT_ARRAY_BUFFER, vertexIndices.size() * sizeof(unsigned int), &vertexIndices[0], GL_STATIC_DRAW);
+    glBindBuffer(GL_ARRAY_BUFFER, 0); // Unbind vertex index buffer
+
     // Use generated shader program
     glUseProgram(programID);
 
-    // Get shader uniforms
-    // Pass matrix to vertex shader
+    // Pass data to shader uniforms
     MVPID = glGetUniformLocation(programID, "MVP");
-
-    // Pass model matrix to vertex shader
     ModelMatrixID = glGetUniformLocation(programID, "M");
-
-    // Pass view matrix to vertex shader
     ViewMatrixID = glGetUniformLocation(programID, "V");
-
-    // Pass light position to vertex shader
     LightPosID = glGetUniformLocation(programID, "LightPosition_worldspace");
 }
 
@@ -94,5 +88,5 @@ void NIP_Engine::MeshRenderer::Update()
     glUniform3f(LightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
 
     // Draw cube
-    glDrawArrays(GL_TRIANGLES, 0, vertexCount);
+    glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, (void*)0);
 }

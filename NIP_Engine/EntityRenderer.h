@@ -28,6 +28,7 @@ private:
     GLuint vertexbuffer;
     GLuint uvbuffer;
     GLuint normalbuffer;
+    GLuint indexbuffer;
 
     // Pass to vertex shader
     GLuint MVPID;
@@ -42,7 +43,7 @@ private:
     char* modelPath;
 
     glm::vec3 lightPosition = glm::vec3(5, 5, 5);
-    int vertexCount;
+    std::vector<unsigned int> vertexIndices;
 };
 
 class EntityRenderer {
