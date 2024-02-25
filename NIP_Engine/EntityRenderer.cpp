@@ -34,7 +34,7 @@ void NIP_Engine::MeshRenderer::Start()
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals; // Won't be used at the moment.
 
-    LoadOBJFromFileIndexed("../../NIP_Engine/Models/sphere.obj", &vertices, &uvs, &normals, &vertexIndices);
+    OBJ_Loader::LoadOBJFromFileIndexed("../../NIP_Engine/Models/sphere.obj", &vertices, &uvs, &normals, &vertexIndices);
 
     // VERTEX BUFFER
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
