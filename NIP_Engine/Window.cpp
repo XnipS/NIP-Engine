@@ -70,17 +70,19 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     Entity cube = entitySystem.CreateGameObject();
 
     // Create new renderer for cube
-    MeshRenderer* renderer = entityRenderer.CreateMeshRenderer(cube.GetObjectID());
+    entityRenderer.CreateMeshRenderer(cube.GetObjectID());
+    entityRenderer.GetMeshRenderer(cube.GetObjectID())->LinkMatrices(&mvpMatrix, &viewMatrix);
+    entityRenderer.GetMeshRenderer(cube.GetObjectID())->modelPath = "../../NIP_Engine/Models/cube.obj";
 
     // Create new object
-    // Entity sphere = entitySystem.CreateGameObject();
+    Entity sphere = entitySystem.CreateGameObject();
 
     // Create new renderer for cube
-    // MeshRenderer* ren = entityRenderer.CreateMeshRenderer(sphere.GetObjectID());
+    entityRenderer.CreateMeshRenderer(sphere.GetObjectID());
+    entityRenderer.GetMeshRenderer(sphere.GetObjectID())->LinkMatrices(&mvpMatrix, &viewMatrix);
 
-    // ren->LinkMatrices(&mvpMatrix, &viewMatrix);
-    renderer->LinkMatrices(&mvpMatrix, &viewMatrix);
-
+    // Initialise all entity renderers
+    // TODO: Start on creation of new mesh renderer
     entityRenderer.Start();
 }
 

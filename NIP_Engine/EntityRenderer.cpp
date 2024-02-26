@@ -7,6 +7,16 @@
 #include <glm/fwd.hpp>
 #include <glm/gtc/type_ptr.hpp>
 
+NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::GetMeshRenderer(int owner)
+{
+    for (int i = 0; i < renderers.size(); i++) {
+        if (renderers[i].ownerID == owner) {
+            return &renderers[i];
+        }
+    }
+    return nullptr;
+}
+
 NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::CreateMeshRenderer(int owner)
 {
     MeshRenderer newObject = MeshRenderer();
@@ -36,12 +46,12 @@ void NIP_Engine::MeshRenderer::Start()
     // Load debug model
     std::vector<glm::vec3> vertices;
     std::vector<glm::vec2> uvs;
-    std::vector<glm::vec3> normals; // Won't be used at the moment.
+    std::vector<glm::vec3> normals;
 
     // Bind VAO
     glBindVertexArray(VAO);
     // Load model into array
-    OBJ_Loader::LoadOBJFromFileIndexed("../../NIP_Engine/Models/sphere.obj", &vertices, &uvs, &normals, &vertexIndices);
+    OBJ_Loader::LoadOBJFromFileIndexed(modelPath, &vertices, &uvs, &normals, &vertexIndices);
 
     // VERTEX BUFFER
     glBindBuffer(GL_ARRAY_BUFFER, vertexbuffer);
@@ -95,7 +105,7 @@ void NIP_Engine::MeshRenderer::UpdateRenderer(NIP_Engine::EntitySystem* sys)
     glm::mat4* mm = &sys->GetObject(ownerID)->modelMatrix;
 
     // Debug mm
-    *mm = glm::translate(*mm, glm::vec3(0.1, 0.0, 0.0));
+    // *mm = glm::translate(*mm, glm::vec3(0.1, 0.0, 0.0));
 
     // Pass data to vertex shader
     glUniformMatrix4fv(MVPID, 1, GL_FALSE, glm::value_ptr(*mvp * *mm));
