@@ -2,6 +2,7 @@
 #include "Entity.h"
 #include "EntityCamera.h"
 #include "EntityRenderer.h"
+#include "EntityTransform.h"
 #define GLM_ENABLE_EXPERIMENTAL
 #include "Window.h"
 #include "core.h"
@@ -24,6 +25,7 @@ NIP_Engine::Camera* mainCamera;
 NIP_Engine::EntitySystem entitySystem;
 NIP_Engine::EntityRenderer entityRenderer;
 NIP_Engine::EntityCamera entityCamera;
+NIP_Engine::EntityTransform entityTransform;
 
 glm::mat4 mvpMatrix = glm::mat4(1.0f); // Perspective matrix
 glm::mat4 viewMatrix = glm::mat4(1.0f); // View matrix
@@ -70,6 +72,7 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     Entity cube = entitySystem.CreateGameObject();
 
     // Create new renderer for cube
+    entityTransform.CreateTransform(cube.GetObjectID());
     entityRenderer.CreateMeshRenderer(cube.GetObjectID());
     entityRenderer.GetMeshRenderer(cube.GetObjectID())->LinkMatrices(&mvpMatrix, &viewMatrix);
     entityRenderer.GetMeshRenderer(cube.GetObjectID())->modelPath = "../../NIP_Engine/Models/cube.obj";
@@ -78,6 +81,7 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     Entity sphere = entitySystem.CreateGameObject();
 
     // Create new renderer for cube
+    entityTransform.CreateTransform(sphere.GetObjectID());
     entityRenderer.CreateMeshRenderer(sphere.GetObjectID());
     entityRenderer.GetMeshRenderer(sphere.GetObjectID())->LinkMatrices(&mvpMatrix, &viewMatrix);
 
@@ -131,7 +135,7 @@ void NIP_Engine::Window::Render()
     glDepthFunc(GL_LESS); // Accept fragment if it closer to the camera than the former one
 
     // Update entities
-    entityRenderer.Update(&entitySystem);
+    entityRenderer.Update(&entityTransform);
 
     // Swap buffers
     glfwSwapBuffers(win);

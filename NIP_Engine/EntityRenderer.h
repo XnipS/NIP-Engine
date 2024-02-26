@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+#include "EntityTransform.h"
 #include <cstddef>
 #include <glm/fwd.hpp>
 #include <vector>
@@ -10,7 +11,7 @@ class MeshRenderer : public Component {
 public:
     void Start() override;
 
-    void UpdateRenderer(NIP_Engine::EntitySystem* sys);
+    void UpdateRenderer(NIP_Engine::EntityTransform* sys);
 
     void LinkMatrices(glm::mat4* mvpmatrix, glm::mat4* vmatrix)
     {
@@ -55,10 +56,10 @@ public:
             renderers[i].Start();
         }
     }
-    void Update(NIP_Engine::EntitySystem* sys)
+    void Update(NIP_Engine::EntityTransform* tra)
     {
         for (int i = 0; i < renderers.size(); i++) {
-            renderers[i].UpdateRenderer(sys);
+            renderers[i].UpdateRenderer(tra);
         }
     }
     MeshRenderer* CreateMeshRenderer(int owner);

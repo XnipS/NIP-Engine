@@ -31,7 +31,6 @@ public:
     {
         return objectID;
     }
-    glm::mat4 modelMatrix = glm::mat4(1.0f);
 
 private:
     int objectID;
