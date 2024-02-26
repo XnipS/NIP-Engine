@@ -27,7 +27,7 @@ NIP_Engine::EntityRenderer entityRenderer;
 NIP_Engine::EntityCamera entityCamera;
 NIP_Engine::EntityTransform entityTransform;
 
-glm::mat4 mvpMatrix = glm::mat4(1.0f); // Perspective matrix
+glm::mat4 mvpMatrix = glm::mat4(1.0f); // Perspective matrix (without model matrix)
 glm::mat4 viewMatrix = glm::mat4(1.0f); // View matrix
 
 void NIP_Engine::Window::Initialise(const char* title, int w, int h)
@@ -95,8 +95,6 @@ void NIP_Engine::Window::GetWindowDimension(int* w, int* h)
     *h = height;
 }
 
-double xpos, ypos;
-bool m_forward, m_back, m_left, m_right;
 void NIP_Engine::Window::Update()
 {
     // Tick
@@ -106,6 +104,7 @@ void NIP_Engine::Window::Update()
     glfwPollEvents();
 
     // Grab cursor events
+    double xpos, ypos;
     glfwGetCursorPos(win, &xpos, &ypos);
     glfwSetInputMode(win, GLFW_CURSOR, GLFW_CURSOR_DISABLED);
     glfwSetCursorPos(win, width / 2.0, height / 2.0);

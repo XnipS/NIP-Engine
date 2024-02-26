@@ -33,8 +33,8 @@ public:
     }
     Transform* CreateTransform(int owner);
     Transform* GetTransform(int owner);
-    std::vector<Transform> transforms;
 
 private:
+    std::vector<Transform> transforms;
 };
 }

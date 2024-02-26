@@ -71,8 +71,8 @@ public:
     MeshRenderer* CreateMeshRenderer(int owner);
     MeshRenderer* CreateMeshRenderer(int owner, char* model);
     MeshRenderer* GetMeshRenderer(int owner);
-    std::vector<MeshRenderer> renderers;
 
 private:
+    std::vector<MeshRenderer> renderers;
 };
 }

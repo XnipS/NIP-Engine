@@ -52,8 +52,8 @@ public:
         }
     }
     Camera* CreateCamera(int owner, int w, int h);
-    std::vector<Camera> cameras;
 
 private:
+    std::vector<Camera> cameras;
 };
 }
