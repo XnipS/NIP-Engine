@@ -18,7 +18,11 @@ public:
         mvp = mvpmatrix;
         viewMatrix = vmatrix;
     }
-    char* modelPath = "../../NIP_Engine/Models/sphere.obj";
+
+    void SetModel(char* path)
+    {
+        modelPath = path;
+    }
 
 private:
     // Shader program
@@ -44,6 +48,8 @@ private:
     glm::mat4* mvp = nullptr;
     glm::mat4* viewMatrix = nullptr;
 
+    char* modelPath = "../../NIP_Engine/Models/sphere.obj";
+
     glm::vec3 lightPosition = glm::vec3(5, 5, 5);
     std::vector<unsigned int> vertexIndices;
 };
@@ -63,6 +69,7 @@ public:
         }
     }
     MeshRenderer* CreateMeshRenderer(int owner);
+    MeshRenderer* CreateMeshRenderer(int owner, char* model);
     MeshRenderer* GetMeshRenderer(int owner);
     std::vector<MeshRenderer> renderers;
 

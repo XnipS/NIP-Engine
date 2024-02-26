@@ -27,6 +27,13 @@ NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::CreateMeshRenderer(int own
     return &renderers.back();
 }
 
+NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::CreateMeshRenderer(int owner, char* path)
+{
+    MeshRenderer* newObject = CreateMeshRenderer(owner);
+    newObject->SetModel(path);
+    return newObject;
+}
+
 // Mesh Renderer
 void NIP_Engine::MeshRenderer::Start()
 {
