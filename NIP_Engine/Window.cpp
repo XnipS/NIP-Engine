@@ -24,11 +24,9 @@ NIP_Engine::Camera* mainCamera;
 NIP_Engine::EntitySystem entitySystem;
 NIP_Engine::EntityRenderer entityRenderer;
 NIP_Engine::EntityCamera entityCamera;
-GLuint VAO;
 
-glm::mat4 mvpMatrix; // Perspective matrix
-glm::mat4 modelMatrix; // Model matrix
-glm::mat4 viewMatrix; // View matrix
+glm::mat4 mvpMatrix = glm::mat4(1.0f); // Perspective matrix
+glm::mat4 viewMatrix = glm::mat4(1.0f); // View matrix
 
 void NIP_Engine::Window::Initialise(const char* title, int w, int h)
 {
@@ -60,12 +58,6 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     glewExperimental = true;
     glewInit();
 
-    // Generate VAO buffer
-    glGenVertexArrays(1, &VAO);
-
-    // Bind VAO
-    glBindVertexArray(VAO);
-
     // Setup Done
     isRunning = true;
 
@@ -80,7 +72,14 @@ void NIP_Engine::Window::Initialise(const char* title, int w, int h)
     // Create new renderer for cube
     MeshRenderer* renderer = entityRenderer.CreateMeshRenderer(cube.GetObjectID());
 
-    renderer->LinkMatrices(&mvpMatrix, &modelMatrix, &viewMatrix);
+    // Create new object
+    // Entity sphere = entitySystem.CreateGameObject();
+
+    // Create new renderer for cube
+    // MeshRenderer* ren = entityRenderer.CreateMeshRenderer(sphere.GetObjectID());
+
+    // ren->LinkMatrices(&mvpMatrix, &viewMatrix);
+    renderer->LinkMatrices(&mvpMatrix, &viewMatrix);
 
     entityRenderer.Start();
 }
@@ -110,7 +109,7 @@ void NIP_Engine::Window::Update()
     mainCamera->PassUserInput(&xpos, &ypos, (glfwGetKey(win, GLFW_KEY_W) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_S) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_A) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_D) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_SPACE) == GLFW_PRESS), (glfwGetKey(win, GLFW_KEY_LEFT_CONTROL) == GLFW_PRESS));
 
     // Calculate Perspective
-    mainCamera->CalculatePerspective(&mvpMatrix, &modelMatrix, &viewMatrix);
+    mainCamera->CalculatePerspective(&mvpMatrix, &viewMatrix);
 
     // Check if should close
     if (glfwWindowShouldClose(win)) {
@@ -129,14 +128,8 @@ void NIP_Engine::Window::Render()
     glEnable(GL_CULL_FACE); // Cull backfaces
     glDepthFunc(GL_LESS); // Accept fragment if it closer to the camera than the former one
 
-    // Bind VAO
-    glBindVertexArray(VAO);
-
     // Update entities
-    entityRenderer.Update();
-
-    // Unbind VAO
-    glBindVertexArray(0);
+    entityRenderer.Update(&entitySystem);
 
     // Swap buffers
     glfwSwapBuffers(win);

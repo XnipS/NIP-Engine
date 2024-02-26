@@ -1,8 +1,11 @@
 #include "EntityRenderer.h"
 #include "BMP_Loader.h"
+#include "Entity.h"
 #include "OBJ_Loader.h"
 #include "Shader_Loader.h"
+#include <glm/ext/matrix_transform.hpp>
 #include <glm/fwd.hpp>
+#include <glm/gtc/type_ptr.hpp>
 
 NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::CreateMeshRenderer(int owner)
 {
@@ -17,6 +20,7 @@ NIP_Engine::MeshRenderer* NIP_Engine::EntityRenderer::CreateMeshRenderer(int own
 void NIP_Engine::MeshRenderer::Start()
 {
     // Generate buffers
+    glGenVertexArrays(1, &VAO); // VAO buffer
     glGenBuffers(1, &vertexbuffer); // Generate 1 buffer, put the resulting identifier in vertexbuffer
     glGenBuffers(1, &uvbuffer);
     glGenBuffers(1, &normalbuffer);
@@ -34,6 +38,9 @@ void NIP_Engine::MeshRenderer::Start()
     std::vector<glm::vec2> uvs;
     std::vector<glm::vec3> normals; // Won't be used at the moment.
 
+    // Bind VAO
+    glBindVertexArray(VAO);
+    // Load model into array
     OBJ_Loader::LoadOBJFromFileIndexed("../../NIP_Engine/Models/sphere.obj", &vertices, &uvs, &normals, &vertexIndices);
 
     // VERTEX BUFFER
@@ -70,23 +77,36 @@ void NIP_Engine::MeshRenderer::Start()
     ModelMatrixID = glGetUniformLocation(programID, "M");
     ViewMatrixID = glGetUniformLocation(programID, "V");
     LightPosID = glGetUniformLocation(programID, "LightPosition_worldspace");
+
+    // Unbind vertex array object
+    glBindVertexArray(0);
+
+    // Reset shader state
+    glUseProgram(0);
 }
 
-void NIP_Engine::MeshRenderer::Update()
+void NIP_Engine::MeshRenderer::UpdateRenderer(NIP_Engine::EntitySystem* sys)
 {
+    // Bind object VAO
+    glBindVertexArray(VAO);
+    glUseProgram(programID);
 
-    // Pass matrix to vertex shader
-    glUniformMatrix4fv(MVPID, 1, GL_FALSE, &(*mvp)[0][0]);
+    // Get model matrix from entity owner
+    glm::mat4* mm = &sys->GetObject(ownerID)->modelMatrix;
 
-    // Pass model matrix to vertex shader
-    glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, &(*modelMatrix)[0][0]);
+    // Debug mm
+    *mm = glm::translate(*mm, glm::vec3(0.1, 0.0, 0.0));
 
-    // Pass view matrix to vertex shader
+    // Pass data to vertex shader
+    glUniformMatrix4fv(MVPID, 1, GL_FALSE, glm::value_ptr(*mvp * *mm));
+    glUniformMatrix4fv(ModelMatrixID, 1, GL_FALSE, glm::value_ptr(*mm));
     glUniformMatrix4fv(ViewMatrixID, 1, GL_FALSE, &(*viewMatrix)[0][0]);
-
-    // Pass light position to vertex shader
     glUniform3f(LightPosID, lightPosition.x, lightPosition.y, lightPosition.z);
 
-    // Draw cube
+    // Draw mesh
     glDrawElements(GL_TRIANGLES, vertexIndices.size(), GL_UNSIGNED_INT, (void*)0);
+
+    // Unbind VAO
+    glBindVertexArray(0);
+    glUseProgram(0);
 }

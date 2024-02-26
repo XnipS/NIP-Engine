@@ -1,4 +1,5 @@
 #include "Entity.h"
+#include <cstddef>
 
 NIP_Engine::Entity NIP_Engine::EntitySystem::CreateGameObject()
 {
@@ -16,4 +17,13 @@ void NIP_Engine::EntitySystem::DestroyGameObject(int ID)
             entities.erase(iterator);
         }
     }
+}
+NIP_Engine::Entity* NIP_Engine::EntitySystem::GetObject(int ID)
+{
+    for (int i = 0; i < entities.size(); i++) {
+        if (entities[i].GetObjectID() == ID) {
+            return &entities[i];
+        }
+    }
+    return nullptr;
 }

@@ -31,6 +31,7 @@ public:
     {
         return objectID;
     }
+    glm::mat4 modelMatrix = glm::mat4(1.0f);
 
 private:
     int objectID;
@@ -41,6 +42,7 @@ public:
     // Create/Destroy
     Entity CreateGameObject();
     void DestroyGameObject(int ID);
+    Entity* GetObject(int ID);
 
 private:
     std::vector<Entity> entities;

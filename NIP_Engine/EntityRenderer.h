@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Entity.h"
+#include <cstddef>
 #include <glm/fwd.hpp>
 #include <vector>
 namespace NIP_Engine {
@@ -9,18 +10,19 @@ class MeshRenderer : public Component {
 public:
     void Start() override;
 
-    void Update() override;
+    void UpdateRenderer(NIP_Engine::EntitySystem* sys);
 
-    void LinkMatrices(glm::mat4* mvpmatrix, glm::mat4* mmatrix, glm::mat4* vmatrix)
+    void LinkMatrices(glm::mat4* mvpmatrix, glm::mat4* vmatrix)
     {
         mvp = mvpmatrix;
-        modelMatrix = mmatrix;
         viewMatrix = vmatrix;
     }
 
 private:
     // Shader program
     GLuint programID;
+    // Vertex array object
+    GLuint VAO;
     // Texture TODO
     // GLuint textureID;
 
@@ -37,9 +39,8 @@ private:
     GLuint LightPosID;
 
     // Pointers
-    glm::mat4* mvp;
-    glm::mat4* modelMatrix;
-    glm::mat4* viewMatrix;
+    glm::mat4* mvp = nullptr;
+    glm::mat4* viewMatrix = nullptr;
     char* modelPath;
 
     glm::vec3 lightPosition = glm::vec3(5, 5, 5);
@@ -54,10 +55,10 @@ public:
             renderers[i].Start();
         }
     }
-    void Update()
+    void Update(NIP_Engine::EntitySystem* sys)
     {
         for (int i = 0; i < renderers.size(); i++) {
-            renderers[i].Update();
+            renderers[i].UpdateRenderer(sys);
         }
     }
     MeshRenderer* CreateMeshRenderer(int owner);

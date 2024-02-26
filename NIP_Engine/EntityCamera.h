@@ -10,7 +10,7 @@ public:
 
     void Update() override;
 
-    void CalculatePerspective(glm::mat4* mvp, glm::mat4* mmatrix, glm::mat4* vmatrix);
+    void CalculatePerspective(glm::mat4* mvp, glm::mat4* vmatrix);
 
     void PassUserInput(double* mouse_x, double* mouse_y, bool forward, bool backward, bool left, bool right, bool up, bool down);
 

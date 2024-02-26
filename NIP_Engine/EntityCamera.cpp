@@ -70,7 +70,7 @@ void NIP_Engine::Camera::PassUserInput(double* mouse_x, double* mouse_y, bool fo
     }
 }
 
-void NIP_Engine::Camera::CalculatePerspective(glm::mat4* mvp, glm::mat4* mmatrix, glm::mat4* vmatrix)
+void NIP_Engine::Camera::CalculatePerspective(glm::mat4* mvp, glm::mat4* vmatrix)
 {
     // Projection matrix : 45° Field of View, 4:3 ratio, display range : 0.1 unit <-> 100 units
     glm::mat4 calculatedProjection = glm::perspective(glm::radians(fieldOfView), (float)window_width / (float)window_height, 0.01f, 100.0f);
@@ -82,11 +82,7 @@ void NIP_Engine::Camera::CalculatePerspective(glm::mat4* mvp, glm::mat4* mmatrix
         dir_up // Which way is up
     );
 
-    // Model matrix : an identity matrix (model will be at the origin)
-    glm::mat4 Model = glm::mat4(1.0f);
-
     // Our ModelViewProjection : multiplication of our 3 matrices
-    *mvp = calculatedProjection * View * Model; // Remember, matrix multiplication is the other way around
-    *mmatrix = Model;
+    *mvp = calculatedProjection * View; // * Model; // Remember, matrix multiplication is the other way around
     *vmatrix = View;
 }
